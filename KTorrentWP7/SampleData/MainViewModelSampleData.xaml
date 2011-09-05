@@ -1,0 +1,27 @@
+﻿<local:MainViewModel 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"       
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:KTorrentWP7" 
+    SampleProperty="Sample Text Property Value">
+
+    <local:MainViewModel.Hosts>
+        <local:HostViewModel Host="host" Port='1234' Username="username" Password="password" />
+
+    </local:MainViewModel.Hosts>
+
+    <local:MainViewModel.Settings>
+        <local:NameContentViewModel Name="settings name" Content="settings value"/>
+
+    </local:MainViewModel.Settings>
+
+    <local:MainViewModel.Globals>
+        <local:NameContentViewModel Name="globals name" Content="globals value"/>
+
+    </local:MainViewModel.Globals>
+
+    <local:MainViewModel.Torrents>
+        <local:TorrentsViewModel name="torrent name" info_hash="info_hash" status="status"/>
+
+    </local:MainViewModel.Torrents>
+
+</local:MainViewModel>

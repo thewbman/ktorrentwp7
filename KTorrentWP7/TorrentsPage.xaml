@@ -14,7 +14,7 @@
     FontSize="{StaticResource PhoneFontSizeNormal}"
     Foreground="{StaticResource PhoneForegroundBrush}"
     SupportedOrientations="Portrait"  Orientation="Portrait"
-    shell:SystemTray.IsVisible="True">
+    shell:SystemTray.IsVisible="True" xmlns:my="clr-namespace:Microsoft.Advertising.Mobile.UI;assembly=Microsoft.Advertising.Mobile.UI">
     
     <phone:PhoneApplicationPage.Resources>
 
@@ -54,10 +54,12 @@
 
     <!--LayoutRoot is the root grid where all page content is placed-->
     <Grid x:Name="LayoutRoot" Background="#024873">
-        
-        
+
+        <!--<my:AdControl Name="adControl1" AdUnitId="Image480_80" ApplicationId="test_client" Height="80" HorizontalAlignment="Left" VerticalAlignment="Top" Width="480" />-->
+        <my:AdControl Name="adControl1" AdUnitId="70552" ApplicationId="adbae607-bc35-473d-8771-718c7079001e" Height="80" HorizontalAlignment="Left" VerticalAlignment="Top" Width="480" />
+
         <!--Pivot Control-->
-        <controls:Pivot Title="{Binding Host}" x:Name="PivotTitle">
+        <controls:Pivot Title="{Binding Host}" x:Name="PivotTitle" Margin="0,80,0,0">
 
             <!--<controls:PivotItem Header="all" >
                 <ListBox x:Name="TorrentsListBox" ItemsSource="{Binding Torrents}">
@@ -124,11 +126,11 @@
                 </ScrollViewer>
             </controls:PivotItem>
             -->
-            
+
         </controls:Pivot>
-
+        
+        
     </Grid>
-
     <!--
     <phone:PhoneApplicationPage.ApplicationBar>
         <shell:ApplicationBar  Opacity="1" IsVisible="True" IsMenuEnabled="True">

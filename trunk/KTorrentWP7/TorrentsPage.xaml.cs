@@ -59,6 +59,7 @@ namespace KTorrentWP7.ViewModels
             GlobalsListBox.ItemsSource = App.ViewModel.Globals;
             //TorrentsListBox.ItemsSource = App.ViewModel.Torrents;
             //TorrentsLL.ItemsSource = App.ViewModel.Torrents;
+
         }
 
 

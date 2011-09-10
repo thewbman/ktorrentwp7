@@ -43,6 +43,7 @@ namespace KTorrentWP7
             this.Questions.Add(new NameContentViewModel() { Name = "What does this KTorrentWP7 app do?", Content = "KTorrentWP7 is an app for monitoring and controlling a KTorrent program laready running on a desktop.  The torrent files and data are not downloaded to this device." });
             this.Questions.Add(new NameContentViewModel() { Name = "How do I setup KTorrent to use this app?", Content = "You must turn enable the 'Web Interface' plugin inside the KTorrent program.  When you enable you will be able to set the port, username and password needed." });
             this.Questions.Add(new NameContentViewModel() { Name = "Can I start new torrent downloads from the app?", Content = "Not currently, but that feature is planned for a future version." });
+            this.Questions.Add(new NameContentViewModel() { Name = "Why does the app say I have to fully the app it before reconncting to a host?", Content = "There is a limitation in how WindowsPhone7 ccommunicates with web services that won't allow the app to reconnect to the same host twice without closing the app." });
             this.Questions.Add(new NameContentViewModel() { Name = "What I have trouble getting this app to work?", Content = "Try emailing the developer.  The contact information is available to right." });
 
             QuestionListBox.ItemsSource = this.Questions;

@@ -33,10 +33,10 @@ namespace KTorrentWP7.ViewModels
 
         private string challengeHash = "";
 
-        String loginRequestString = "http://{0}:{1}/login.html";
-        String loginChallengeString = "http://{0}:{1}/login/challenge.xml";
+        String loginRequestString = "http://{0}:{1}{2}login.html";
+        String loginChallengeString = "http://{0}:{1}{2}login/challenge.xml";
         //String actualLoginString = "http://{0}:{1}/login?page=interface.html&Login=Sign+in&username={2}&password=&challenge={3}";
-        String actualLoginString = "http://{0}:{1}/login?page=interface.html&random={2}";
+        String actualLoginString = "http://{0}:{1}{2}login?page=interface.html&random={3}";
         String actualLoginContent = "username={0}&password=&Login=Sign+in&challenge={1}";
         String refererLoginString = "http://{0}:{1}/";
 
@@ -59,6 +59,7 @@ namespace KTorrentWP7.ViewModels
             GlobalsListBox.ItemsSource = App.ViewModel.Globals;
             //TorrentsListBox.ItemsSource = App.ViewModel.Torrents;
             //TorrentsLL.ItemsSource = App.ViewModel.Torrents;
+
         }
 
 
@@ -75,7 +76,7 @@ namespace KTorrentWP7.ViewModels
 
                 try
                 {
-                  CallLoginService();
+                    if(App.ViewModel.Connected == false) CallLoginService();
                 }
                 catch
                 {
@@ -89,8 +90,8 @@ namespace KTorrentWP7.ViewModels
         {
 
             PivotTitle.Title = "KTorrentWP7: " + App.ViewModel.Hosts[App.ViewModel.hostIndex].Host+" ...";
-            
-            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(new Uri(String.Format(loginRequestString, App.ViewModel.Hosts[App.ViewModel.hostIndex].Host, App.ViewModel.Hosts[App.ViewModel.hostIndex].Port)));
+
+            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(new Uri(String.Format(loginRequestString, App.ViewModel.Hosts[App.ViewModel.hostIndex].Host, App.ViewModel.Hosts[App.ViewModel.hostIndex].Port, App.ViewModel.Slashes)));
 
             webRequest.CookieContainer = CookieJar;
             webRequest.AllowAutoRedirect = false;
@@ -103,7 +104,23 @@ namespace KTorrentWP7.ViewModels
             
             HttpWebRequest request = (HttpWebRequest)asynchronousResult.AsyncState;
 
-            HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(asynchronousResult);
+            HttpWebResponse response;
+
+            try
+            {
+                response = (HttpWebResponse)request.EndGetResponse(asynchronousResult);
+            } 
+            catch(Exception ex) 
+            {
+                 Deployment.Current.Dispatcher.BeginInvoke(() =>
+                {
+                    MessageBox.Show("Error connecting to the host.  Check that you have internet connectivity and that the hostname and port are correct.", "Error", MessageBoxButton.OK);
+                    App.ViewModel.Connected = false;
+                    NavigationService.GoBack();
+                });
+
+                return;
+            }
 
             GetRedirectURL(request.RequestUri, response);
 
@@ -128,11 +145,12 @@ namespace KTorrentWP7.ViewModels
 
         private void CallChallengeService()
         {
-            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(new Uri(String.Format(loginChallengeString, App.ViewModel.Hosts[App.ViewModel.hostIndex].Host, App.ViewModel.Hosts[App.ViewModel.hostIndex].Port)));
+            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(new Uri(String.Format(loginChallengeString, App.ViewModel.Hosts[App.ViewModel.hostIndex].Host, App.ViewModel.Hosts[App.ViewModel.hostIndex].Port, App.ViewModel.Slashes)));
 
             request.CookieContainer = CookieJar;
             request.AllowAutoRedirect = false;
-            request.Headers["Cookie"] = _cookie;
+            //request.Headers["Cookie"] = App.ViewModel.Hosts[App.ViewModel.hostIndex].Cookie;
+
             request.BeginGetResponse(new AsyncCallback(ChallengeCallback), request);
         }
         private void ChallengeCallback(IAsyncResult asynchronousResult)
@@ -141,8 +159,24 @@ namespace KTorrentWP7.ViewModels
 
             HttpWebRequest request = (HttpWebRequest)asynchronousResult.AsyncState;
 
-            HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(asynchronousResult);
-            
+            HttpWebResponse response;
+
+            try
+            {
+                response = (HttpWebResponse)request.EndGetResponse(asynchronousResult);
+            }
+            catch (Exception ex)
+            {
+                Deployment.Current.Dispatcher.BeginInvoke(() =>
+                {
+                    MessageBox.Show("Error getting challenge information from host.  Check that you have internet connectivity and that the hostname and port are correct.", "Error", MessageBoxButton.OK);
+                    App.ViewModel.Connected = false;
+                    NavigationService.GoBack();
+                });
+
+                return;
+            }
+
             using (StreamReader streamReader1 = new StreamReader(response.GetResponseStream()))
             {
                 resultString = streamReader1.ReadToEnd();
@@ -198,7 +232,7 @@ namespace KTorrentWP7.ViewModels
 
         private void CallActualLoginService()
         {
-            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(new Uri(String.Format(actualLoginString, App.ViewModel.Hosts[App.ViewModel.hostIndex].Host, App.ViewModel.Hosts[App.ViewModel.hostIndex].Port, randText())));
+            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(new Uri(String.Format(actualLoginString, App.ViewModel.Hosts[App.ViewModel.hostIndex].Host, App.ViewModel.Hosts[App.ViewModel.hostIndex].Port, App.ViewModel.Slashes, randText())));
             
             webRequest.CookieContainer = CookieJar;
             webRequest.Method = "POST";
@@ -232,7 +266,24 @@ namespace KTorrentWP7.ViewModels
 
             HttpWebRequest request = (HttpWebRequest)asynchronousResult.AsyncState;
 
-            HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(asynchronousResult);
+            HttpWebResponse response;
+
+            try
+            {
+                App.ViewModel.Connected = true;
+                response = (HttpWebResponse)request.EndGetResponse(asynchronousResult);
+            }
+            catch (Exception ex)
+            {
+                Deployment.Current.Dispatcher.BeginInvoke(() =>
+                {
+                    MessageBox.Show("Error logging into the host.  Check that you have internet connectivity and that the hostname, port, username and password are correct.", "Error", MessageBoxButton.OK);
+                    App.ViewModel.Connected = false;
+                    NavigationService.GoBack();
+                });
+
+                return;
+            }
 
             using (StreamReader streamReader1 = new StreamReader(response.GetResponseStream()))
             {
@@ -249,7 +300,12 @@ namespace KTorrentWP7.ViewModels
             }
             else
             {
-                //error logging in
+                Deployment.Current.Dispatcher.BeginInvoke(() =>
+                {
+                    MessageBox.Show("Error logging into the host.  Check that you have internet connectivity and that the hostname, port, username and password are correct.  You may need to fully close this app and reopen it if you have already connected to this host.", "Error", MessageBoxButton.OK);
+                    App.ViewModel.Connected = false;
+                    NavigationService.GoBack();
+                });
             }
 
 
@@ -283,7 +339,7 @@ namespace KTorrentWP7.ViewModels
             webRequest.CookieContainer = CookieJar;
             webRequest.Headers["Cookie"] = App.ViewModel.Hosts[App.ViewModel.hostIndex].Cookie;
 
-            webRequest.BeginGetResponse(new AsyncCallback(SettingsCallback), webRequest);
+            if(App.ViewModel.Connected) webRequest.BeginGetResponse(new AsyncCallback(SettingsCallback), webRequest);
 
         }
         private void SettingsCallback(IAsyncResult asynchronousResult)
@@ -298,7 +354,23 @@ namespace KTorrentWP7.ViewModels
 
             HttpWebRequest request = (HttpWebRequest)asynchronousResult.AsyncState;
 
-            HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(asynchronousResult);
+            HttpWebResponse response;
+
+            try
+            {
+                response = (HttpWebResponse)request.EndGetResponse(asynchronousResult);
+            }
+            catch (Exception ex)
+            {
+                Deployment.Current.Dispatcher.BeginInvoke(() =>
+                {
+                    MessageBox.Show("Unable to get data.  You may have been disconnected from your KTorent system.  You will have to fully close this app before you can reconnect to this system.", "Error", MessageBoxButton.OK);
+                    App.ViewModel.Connected = false;
+                    NavigationService.GoBack();
+                });
+
+                return;
+            }
 
             using (StreamReader streamReader1 = new StreamReader(response.GetResponseStream()))
             {
@@ -375,7 +447,7 @@ namespace KTorrentWP7.ViewModels
             webRequest.CookieContainer = CookieJar;
             webRequest.Headers["Cookie"] = App.ViewModel.Hosts[App.ViewModel.hostIndex].Cookie;
 
-            webRequest.BeginGetResponse(new AsyncCallback(GlobalsCallback), webRequest);
+            if (App.ViewModel.Connected) webRequest.BeginGetResponse(new AsyncCallback(GlobalsCallback), webRequest);
         }
         private void GlobalsCallback(IAsyncResult asynchronousResult)
         {
@@ -389,7 +461,23 @@ namespace KTorrentWP7.ViewModels
 
             HttpWebRequest request = (HttpWebRequest)asynchronousResult.AsyncState;
 
-            HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(asynchronousResult);
+            HttpWebResponse response;
+
+            try
+            {
+                response = (HttpWebResponse)request.EndGetResponse(asynchronousResult);
+            }
+            catch (Exception ex)
+            {
+                Deployment.Current.Dispatcher.BeginInvoke(() =>
+                {
+                    MessageBox.Show("Unable to get data.  You may have been disconnected from your KTorent system.  You will have to fully close this app before you can reconnect to this system.", "Error", MessageBoxButton.OK);
+                    App.ViewModel.Connected = false;
+                    NavigationService.GoBack();
+                });
+
+                return;
+            }
 
             using (StreamReader streamReader1 = new StreamReader(response.GetResponseStream()))
             {
@@ -460,7 +548,7 @@ namespace KTorrentWP7.ViewModels
             webRequest.CookieContainer = CookieJar;
             webRequest.Headers["Cookie"] = App.ViewModel.Hosts[App.ViewModel.hostIndex].Cookie;
 
-            webRequest.BeginGetResponse(new AsyncCallback(TorrentsCallback), webRequest);
+            if (App.ViewModel.Connected) webRequest.BeginGetResponse(new AsyncCallback(TorrentsCallback), webRequest);
         }
         private void TorrentsCallback(IAsyncResult asynchronousResult)
         {
@@ -474,7 +562,23 @@ namespace KTorrentWP7.ViewModels
 
             HttpWebRequest request = (HttpWebRequest)asynchronousResult.AsyncState;
 
-            HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(asynchronousResult);
+            HttpWebResponse response;
+
+            try
+            {
+                response = (HttpWebResponse)request.EndGetResponse(asynchronousResult);
+            }
+            catch (Exception ex)
+            {
+                Deployment.Current.Dispatcher.BeginInvoke(() =>
+                {
+                    MessageBox.Show("Unable to get data.  You may have been disconnected from your KTorent system.  You will have to fully close this app before you can reconnect to this system.", "Error", MessageBoxButton.OK);
+                    App.ViewModel.Connected = false;
+                    NavigationService.GoBack();
+                });
+
+                return;
+            }
 
             using (StreamReader streamReader1 = new StreamReader(response.GetResponseStream()))
             {
@@ -588,7 +692,7 @@ namespace KTorrentWP7.ViewModels
             
                 if (headers["Set-Cookie"] != null)
                 {
-                    String tmpCookie = _cookie = headers["Set-Cookie"].Split(';')[0];
+                    String tmpCookie = headers["Set-Cookie"].Split(';')[0];
 
                     if (tmpCookie == "KT_SESSID=666")
                     {

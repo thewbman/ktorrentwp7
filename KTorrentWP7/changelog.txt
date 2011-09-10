@@ -1,0 +1,5 @@
+Release 1.1:
+ - Add background image 
+ - Validate new hosts
+ - Ad on main page 
+ - Error messages on connect and disconnect problems 

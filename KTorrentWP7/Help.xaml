@@ -15,7 +15,7 @@
     shell:SystemTray.IsVisible="False">
 
     <!--LayoutRoot contains the root grid where all other page content is placed-->
-    <Grid x:Name="LayoutRoot" Background="#024873">
+    <Grid x:Name="LayoutRoot">
         <controls:Panorama Title="help">
 
             <controls:PanoramaItem Header="faqs">
@@ -51,6 +51,9 @@
             -->
             
         </controls:Panorama>
+        <Grid.Background>
+            <ImageBrush ImageSource="/KTorrentWP7;component/Images/AppBackground.png" />
+        </Grid.Background>
     </Grid>
 
     <!--Panorama-based applications should not show an ApplicationBar-->

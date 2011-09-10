@@ -121,7 +121,25 @@ namespace KTorrentWP7
 
             HttpWebRequest request = (HttpWebRequest)asynchronousResult.AsyncState;
 
-            HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(asynchronousResult);
+            HttpWebResponse response;
+
+            try
+            {
+                App.ViewModel.Connected = true;
+                response = (HttpWebResponse)request.EndGetResponse(asynchronousResult);
+            }
+            catch (Exception ex)
+            {
+                Deployment.Current.Dispatcher.BeginInvoke(() =>
+                {
+                    MessageBox.Show("Unable to get data.  You may have been disconnected from your KTorent system.  You will have to fully close this app before you can reconnect to this system.", "Error", MessageBoxButton.OK);
+                    App.ViewModel.Connected = false;
+                    NavigationService.RemoveBackEntry();
+                    NavigationService.GoBack();
+                });
+
+                return;
+            }
 
             using (StreamReader streamReader1 = new StreamReader(response.GetResponseStream()))
             {
